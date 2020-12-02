@@ -4,7 +4,7 @@ tt <- 300 #Seconds between checking
 form <- "8-K" #Form name
 string <- "reverse stock split" #String to match within report
 RSS <- "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent"
-sec_data <- feed.extract(paste(RSS,"&type=", form, "&count=", feed_count, "&output=atom", sep=""))
+sec_data <- NULL
 sec_results <- c()
 
 sec <- function(sec_data, string) {
@@ -21,6 +21,7 @@ sec <- function(sec_data, string) {
 repeat {
 	sec_data_new <- feed.extract(paste(RSS,"&type=", form, "&count=", feed_count, "&output=atom", sep=""))
 	if(!identical(sec_data_new[[4]][1][[1]], sec_data[[4]][1][[1]])) {
+		sec_data <- sec_data_new
 		print("Poor Street Bets: Updating results...")
 		new_data <- sec(sec_data, string)
 		if(is.null(new_data)) {
