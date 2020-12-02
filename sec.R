@@ -1,18 +1,20 @@
 require(feedeR)
-feed_count <- 20 #Number of reports per update to check
-tt <- 300 #Seconds between checking
+feed_count <- 100 #Number of reports per update to check
+tt <- 900 #Seconds between checking
 form <- "8-K" #Form name
 string <- "reverse stock split" #String to match within report
 RSS <- "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent"
 sec_data <- NULL
 sec_results <- c()
 
-sec <- function(sec_data, string) {
+sec <- function(sec_data_new, sec_data, string) {
 	sec_results <- c()
-	for(i in 1:length(sec_data[[4]][3][[1]])) {
-		x <- read.csv(url(sec_data[[4]][3][[1]][i]))
-		if(length(grep(string,x)) > 0) {
-			sec_results <- c(sec_results, sec_data[[4]][1][[1]][i])
+	for(i in 1:length(sec_data_new[[4]][3][[1]])) {
+		if(all(sec_data_new[[4]][3][[1]][i] != sec_data[[4]][3][[1]])) {
+			x <- read.csv(url(sec_data_new[[4]][3][[1]][i]))
+			if(length(grep(string,x)) > 0) {
+				sec_results <- c(sec_results, sec_data_new[[4]][1][[1]][i])
+			}
 		}
 	}
 	return(sec_results)
@@ -21,15 +23,15 @@ sec <- function(sec_data, string) {
 repeat {
 	sec_data_new <- feed.extract(paste(RSS,"&type=", form, "&count=", feed_count, "&output=atom", sep=""))
 	if(!identical(sec_data_new[[4]][1][[1]], sec_data[[4]][1][[1]])) {
-		sec_data <- sec_data_new
 		print("Poor Street Bets: Updating results...")
-		new_data <- sec(sec_data, string)
+		new_data <- sec(sec_data_new, sec_data, string)
 		if(is.null(new_data)) {
 			print("No new matches... :(")
 		} else {
 			sec_results <- unique(c(sec_results, new_data))
 			print(sec_results)
 		}
+		sec_data <- sec_data_new
 	}
 	if(is.null(sec_results)) {
 		print("No coffee money for you!")
